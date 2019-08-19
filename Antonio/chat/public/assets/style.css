@@ -23,6 +23,9 @@ html, body {
     display: flex;
 }
 
+#typingSpace{
+    display: none;
+}
 
 
 

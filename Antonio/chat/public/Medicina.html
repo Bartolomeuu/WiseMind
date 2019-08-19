@@ -17,7 +17,9 @@
             <ol id="messages">
                 <p>sala 1</p>
             </ol>
+
             <div id="bottom"></div>
+            <p id="typingSpace">dfdfdf<p>
         </div>
 
         <form id="chat">
@@ -37,15 +39,47 @@
         integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous">
     </script>
     <script>
-        var socket = io();
-        var sala = 'Medicina'
+        var socket = io(); //conexão
+        var sala = 'Medicina' //sala
+        const campoMessagem = document.getElementById('msg')
 
+        //Enviando a sala para o servidor - posteriormente outros dados 
         var funSala = function (sala) {
             socket.emit('sala', sala)
         }
-
         funSala(sala)
 
+        //usuario esta digitando...press
+        campoMessagem.onkeydown = () => {
+            let user = document.getElementById("user").value
+            let dataObject = {
+                user,
+                sala
+            }
+            socket.emit('typing', dataObject)
+        }
+        //Renderizando 
+        socket.on('renderTyping', function (id) {
+            let typingSpace = document.getElementById('typingSpace')
+            typingSpace.style.display = "block"
+            typingSpace.innerHTML = `<b>${id} esta digitando</b>`
+
+        })
+
+        //usuario esta digitando...up
+        campoMessagem.onkeyup = () => {
+            socket.emit('typingUp', sala)
+        }
+        //Parando de renderizar
+        socket.on('noRenderTyping', () => {
+            setTimeout(() => {
+                typingSpace.style.display = "none"
+            }, 1000)
+        })
+
+
+
+        //função renderizar mensagens próprias
         function renderMessage(message) {
             var chat = document.getElementById('messages')
             var li = document.createElement("li")
@@ -55,12 +89,11 @@
             var text = document.createTextNode(message.message)
             div.appendChild(text)
             chat.appendChild(li)
-
         }
 
+        //função renderizar mensagens de outros usuarios
         function renderMessageReceived(message) {
             var chat = document.getElementById('messages')
-
             var li = document.createElement("li")
             var div = document.createElement("div")
             div.setAttribute('id', 'fild')
@@ -72,30 +105,33 @@
             div.appendChild(link)
             div.appendChild(textMessage)
             li.appendChild(div)
-
             chat.appendChild(li)
         }
 
+        //Lista de usuarios
         function userList(data) {
 
         }
 
-
+        //Recebendo mensagens
         socket.on('receiveMessage', function (message) {
             renderMessageReceived(message)
             document.getElementById('bottom').scrollIntoView(true);
 
         })
 
+        //Recebendo usuarios
         socket.on('user', function (data) {
             userList(data)
         })
 
+        //Enviando mensagens
         document.getElementById('chat').onsubmit = function (e) {
             e.preventDefault()
             var author = document.getElementById('user').value
             var msg = document.getElementById('msg').value
 
+            //Dados da mensgem
             if (msg.length != 0) {
                 var messageObject = {
                     author,
@@ -104,7 +140,6 @@
                 }
 
                 renderMessage(messageObject)
-
 
                 socket.emit('sendMessage', messageObject)
                 document.getElementById('bottom').scrollIntoView(true);

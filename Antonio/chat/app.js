@@ -1,14 +1,9 @@
 const express = require('express')
 const path = require('path')
 
-
-
-
-
 const app = express()
 const server = require('http').createServer(app)
 const io = require('socket.io')(server)
-
 
 app.use(express.static(path.join(__dirname, 'public')))
 app.set('views', path.join(__dirname, 'public'))
@@ -33,8 +28,12 @@ io.on('connection', socket => {
         console.log(sala)
     })
 
-    socket.on('typing', () => {
-        socket.broadcast.emit('renderTyping', socket.id)
+    socket.on('typing', (dados) => {
+        socket.broadcast.to(dados.sala).emit('renderTyping', dados.user)
+    })
+
+    socket.on('typingUp', (sala) => {
+        socket.broadcast.to(sala).emit('noRenderTyping')
     })
 
 
@@ -42,8 +41,6 @@ io.on('connection', socket => {
         console.log(data)
         messages.push(data)
         socket.broadcast.to(data.sala).emit('receiveMessage', data)
-        
-
     })
 })
 
