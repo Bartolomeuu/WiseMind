@@ -2,7 +2,12 @@ html, body {
     background: #e5e5e5;
     font-family: 'Lato', sans-serif;
     margin: 0px auto;
-    height:100%;
+}
+main{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
 }
 
 #teste {
@@ -25,6 +30,15 @@ html, body {
 
 #typingSpace{
     display: none;
+}
+.fundo{
+    position: relative;
+    width: 95%;
+    height: 90%;
+    background-color: rgba(47, 49, 54, 1);
+    border-radius: 30px;
+    padding: 50px;
+
 }
 
 
