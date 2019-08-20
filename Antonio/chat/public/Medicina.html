@@ -143,6 +143,7 @@
                 renderMessage(messageObject)
 
                 socket.emit('sendMessage', messageObject)
+                var msg = document.getElementById('msg').value = ""
                 document.getElementById('bottom').scrollIntoView(true);
 
 
