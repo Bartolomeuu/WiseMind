@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>WiseMind-Medicina</title>
+
+     <!-- Bootstrap CSS -->
+     <link rel="stylesheet" href="./bootstrap/compiler/bootstrap.css">
+     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css">
+     <link rel="stylesheet" href="assets/style.css">
+
+</head>
+
+<body>
+    <button class="btn btn-outline-warning">Luan</button>
+    <h1>Medicina</h1>
+    <div id="main-message">
+        <div id="teste">
+            <ol id="messages">
+                <p>sala 1</p>
+            </ol>
+
+            <div id="bottom"></div>
+            <p id="typingSpace">dfdfdf<p>
+        </div>
+
+        <form id="chat">
+
+            <input type="text" id="user" placeholder="Seu usuario">
+            <input type="text" id="msg" placeholder="digite sua mensagem">
+            <button type="submit" id="env">Enviar</button>
+        </form>
+    </div>
+    
+    <script src="./jquery/dist/jquery.js"></script>
+    <script src="assets/javinha.js"></script>
+    <script src="./popper.js/dist/umd/popper.js"></script>
+    <script src="./bootstrap/dist/js/bootstrap.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        var socket = io(); //conexão
+        var sala = 'Medicina' //sala
+        const campoMessagem = document.getElementById('msg')
+
+        //Enviando a sala para o servidor - posteriormente outros dados 
+        var funSala = function (sala) {
+            socket.emit('sala', sala)
+        }
+        funSala(sala)
+
+        //usuario esta digitando...press
+        campoMessagem.onkeydown = () => {
+            let user = document.getElementById("user").value
+            let dataObject = {
+                user,
+                sala
+            }
+            socket.emit('typing', dataObject)
+        }
+        //Renderizando 
+        socket.on('renderTyping', function (id) {
+            let typingSpace = document.getElementById('typingSpace')
+            typingSpace.style.display = "block"
+            typingSpace.innerHTML = `<b>${id} esta digitando</b>`
+
+        })
+
+        //usuario esta digitando...up
+        campoMessagem.onkeyup = () => {
+            socket.emit('typingUp', sala)
+        }
+        //Parando de renderizar
+        socket.on('noRenderTyping', () => {
+            setTimeout(() => {
+                typingSpace.style.display = "none"
+            }, 1000)
+        })
+
+
+
+        //função renderizar mensagens próprias
+        function renderMessage(message) {
+            var chat = document.getElementById('messages')
+            var li = document.createElement("li")
+            var div = document.createElement("div")
+            div.setAttribute('id', 'self')
+            li.appendChild(div)
+            var text = document.createTextNode(message.message)
+            div.appendChild(text)
+            chat.appendChild(li)
+        }
+
+        //função renderizar mensagens de outros usuarios
+        function renderMessageReceived(message) {
+            var chat = document.getElementById('messages')
+            var li = document.createElement("li")
+            var div = document.createElement("div")
+            div.setAttribute('id', 'fild')
+            var link = document.createElement("a")
+            link.setAttribute(`href`, `http://localhost/index2.php?id=${message.author}`)
+            var text = document.createTextNode(message.author)
+            var textMessage = document.createTextNode(` : ${message.message}`)
+            link.appendChild(text)
+            div.appendChild(link)
+            div.appendChild(textMessage)
+            li.appendChild(div)
+            chat.appendChild(li)
+        }
+
+        //Lista de usuarios
+        function userList(data) {
+
+        }
+
+        //Recebendo mensagens
+        socket.on('receiveMessage', function (message) {
+            renderMessageReceived(message)
+            document.getElementById('bottom').scrollIntoView(true);
+
+        })
+
+        //Recebendo usuarios
+        socket.on('user', function (data) {
+            userList(data)
+        })
+
+        //Enviando mensagens
+        document.getElementById('chat').onsubmit = function (e) {
+            e.preventDefault()
+            var author = document.getElementById('user').value
+            var msg = document.getElementById('msg').value
+
+            //Dados da mensgem
+            if (msg.length != 0) {
+                var messageObject = {
+                    author,
+                    message: msg,
+                    sala: sala
+                }
+
+                renderMessage(messageObject)
+
+                socket.emit('sendMessage', messageObject)
+                var msg = document.getElementById('msg').value = ""
+                document.getElementById('bottom').scrollIntoView(true);
+
+
+            }
+        }
+    </script>
+
+
+</body>
+
+</html>
